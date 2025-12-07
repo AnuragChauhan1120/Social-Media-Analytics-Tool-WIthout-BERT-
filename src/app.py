@@ -1,5 +1,5 @@
 # top-of-file path hack to ensure imports resolve when streamlit starts the script
-from keyword_analysis import get_hashtag_counts, get_keyword_counts
+from src.keyword_analysis import get_hashtag_counts, get_keyword_counts
 import plotly.express as px
 import io
 import sys, os
