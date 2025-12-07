@@ -1,0 +1,11 @@
+streamlit
+pandas
+numpy
+textblob
+matplotlib
+plotly
+wordcloud
+vaderSentiment
+psycopg2-binary
+requests
+beautifulsoup4

@@ -1,0 +1,19 @@
+# Ignore environment & cache
+.env
+__pycache__/
+*.pyc
+
+# Ignore local DB or temp files
+db_test/
+gcm-diagnose/
+
+# Ignore Jupyter checkpoints
+.notebooks/
+.ipynb_checkpoints/
+
+# Ignore data dumps
+data/*
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
