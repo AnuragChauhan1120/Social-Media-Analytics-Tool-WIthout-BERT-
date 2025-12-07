@@ -16,12 +16,12 @@ import matplotlib.pyplot as plt
 import streamlit.components.v1 as components
 
 # local helpers
-from data_extraction import get_comments
-from utils_visuals import (
+from src.data_extraction import get_comments
+from src.utils_visuals import (
     plot_sentiment_bar, plot_sentiment_pie, plot_likes_vs_sentiment,
     make_wordcloud_figure, format_comment_card, timeseries_sentiment
 )
-from db_utils import create_comments_table, insert_comments
+from src.db_utils import create_comments_table, insert_comments
 
 # Page config
 st.set_page_config(page_title="Cyber Analytics — YouTube Sentiment", layout="wide")
@@ -142,7 +142,7 @@ if fetch_btn:
     # -----------------------
     if platform == "Reddit":
         try:
-            from data_reddit import fetch_reddit_comments
+            from src.data_reddit import fetch_reddit_comments
         except Exception as e:
             status.error(f"Reddit module import failed: {e}")
             st.stop()
@@ -183,7 +183,7 @@ if fetch_btn:
     # -----------------------
     # TWITTER BRANCH (placeholder)
     elif platform == "Twitter":
-        from data_twitter import fetch_twitter_comments
+        from src.data_twitter import fetch_twitter_comments
         status.info("Fetching Twitter replies...")
         raw = fetch_twitter_comments(input_url)
 
@@ -198,7 +198,7 @@ if fetch_btn:
     # INSTAGRAM BRANCH (placeholder)
     # -----------------------
     elif platform == "Instagram":
-        from data_instagram import fetch_instagram_comments
+        from src.data_instagram import fetch_instagram_comments
         status.info("Fetching Instagram comments...")
         raw = fetch_instagram_comments(input_url)
 
@@ -240,7 +240,7 @@ if fetch_btn:
         # TextBlob + VADER -> NRC lexicon
         if model_choice in ["TextBlob (default)", "VADER"]:
             try:
-                from emotion_analysis import add_emotion_columns
+                from src.emotion_analysis import add_emotion_columns
                 # only add if not present
                 if not set(nrc_cols).intersection(df.columns):
                     df = add_emotion_columns(df)
