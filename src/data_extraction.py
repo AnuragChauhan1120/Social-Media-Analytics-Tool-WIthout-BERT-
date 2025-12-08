@@ -2,26 +2,38 @@ import os
 import re
 import requests
 import pandas as pd
+import streamlit as st
 from dotenv import load_dotenv
 from pathlib import Path
 
-# ✅ Load API credentials
+# ----------------------------------------------------
+# LOAD API KEY (Streamlit Cloud → st.secrets)
+# Local development → .env file
+# ----------------------------------------------------
 env_path = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(env_path)
 
-print("Loaded ENV from:", env_path)
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
-print("API KEY LOADED:", YOUTUBE_API_KEY)
+YOUTUBE_API_KEY = st.secrets.get("YOUTUBE_API_KEY") or os.getenv("YOUTUBE_API_KEY")
+
+if not YOUTUBE_API_KEY:
+    raise ValueError(
+        "❌ YouTube API key not found.\n"
+        "Set YOUTUBE_API_KEY in Streamlit Cloud → Secrets."
+    )
 
 
+# ----------------------------------------------------
+# Extract Video ID
+# ----------------------------------------------------
 def extract_video_id(url):
-    """Extract YouTube video ID from URL."""
     match = re.search(r"v=([a-zA-Z0-9_-]+)", url)
     return match.group(1) if match else None
 
 
+# ----------------------------------------------------
+# Fetch Comments
+# ----------------------------------------------------
 def get_comments(video_url, max_results=200):
-    """Fetch YouTube comments into a DataFrame."""
     video_id = extract_video_id(video_url)
     if not video_id:
         raise ValueError("Invalid YouTube video URL")
@@ -44,7 +56,9 @@ def get_comments(video_url, max_results=200):
         data = response.json()
 
         if "error" in data:
-            raise Exception(data["error"]["message"])
+            # More helpful error
+            message = data["error"]["message"]
+            raise Exception(f"❌ YouTube API Error: {message}")
 
         for item in data.get("items", []):
             snippet = item["snippet"]["topLevelComment"]["snippet"]
@@ -65,26 +79,21 @@ def get_comments(video_url, max_results=200):
     return pd.DataFrame(comments[:max_results])
 
 
+# ----------------------------------------------------
+# Optional: DB utilities
+# ----------------------------------------------------
 from src.db_utils import create_comments_table, insert_comments
 
 if __name__ == "__main__":
     print("\nFetching comments...")
     df = get_comments("https://www.youtube.com/watch?v=McXJj7sjcZ0", max_results=200)
 
-# Remove this OR wrap it in a test block
-# df = get_comments("some_video", 100)
-# if df is not None and not df.empty:
-#     print(df.head())
-
-
     df = df.rename(columns={
-    "comment": "text",
-    "likes": "like_count"  # ✅ Ensure correct matching
-})
-  # ✅ FIX ADDED HERE
+        "comment": "text",
+        "likes": "like_count"
+    })
 
     create_comments_table()
     insert_comments(df)
+
     print("✅ Comments inserted into PostgreSQL!\n")
-
-
