@@ -65,7 +65,7 @@ def get_comments(video_url, max_results=200):
     return pd.DataFrame(comments[:max_results])
 
 
-from db_utils import create_comments_table, insert_comments
+from src.db_utils import create_comments_table, insert_comments
 
 if __name__ == "__main__":
     print("\nFetching comments...")
@@ -86,4 +86,5 @@ if __name__ == "__main__":
     create_comments_table()
     insert_comments(df)
     print("✅ Comments inserted into PostgreSQL!\n")
+
 
