@@ -54,17 +54,13 @@ st.markdown("""
 # layout: left sidebar for controls, main area for visuals
 platform = st.sidebar.selectbox(
     "Platform",
-    ["YouTube", "Reddit", "Twitter", "Instagram"],
+    ["YouTube", "Reddit"],
     index=0
 )
 if platform == "YouTube":
     input_label = "Paste YouTube Video URL"
-elif platform == "Reddit":
-    input_label = "Paste Reddit Post URL"
-elif platform == "Twitter":
-    input_label = "Paste Tweet URL"
 else:
-    input_label = "Paste Instagram Post URL"
+    input_label = "Paste Reddit Post URL"
 
 with st.sidebar:
     st.header("Controls")
@@ -179,34 +175,6 @@ if fetch_btn:
         except Exception as e:
             status.error(f"Error fetching comments: {e}")
             st.stop()
-
-    # -----------------------
-    # TWITTER BRANCH (placeholder)
-    elif platform == "Twitter":
-        from src.data_twitter import fetch_twitter_comments
-        status.info("Fetching Twitter replies...")
-        raw = fetch_twitter_comments(input_url)
-
-        if raw.empty:
-            status.warning("No Twitter replies found.")
-            st.stop()
-
-        df = prepare_df_for_display(raw)
-
-
-    # -----------------------
-    # INSTAGRAM BRANCH (placeholder)
-    # -----------------------
-    elif platform == "Instagram":
-        from src.data_instagram import fetch_instagram_comments
-        status.info("Fetching Instagram comments...")
-        raw = fetch_instagram_comments(input_url)
-
-        if raw.empty:
-            status.warning("No Instagram comments found (public posts only).")
-            st.stop()
-
-        df = prepare_df_for_display(raw)
 
 
     # -----------------------
