@@ -25,7 +25,7 @@ from src.utils_visuals import (
 from src.db_utils import create_comments_table, insert_comments
 
 # Page config
-st.set_page_config(page_title="Cyber Analytics — YouTube Sentiment", layout="wide")
+st.set_page_config(page_title="Cyber Analytics - YouTube Sentiment", layout="wide")
 st.markdown("<style>body{background:#0b0f14;color:#cfefff}</style>", unsafe_allow_html=True)
 
 # --- hologram header (Glass Hologram effect) ---
@@ -47,7 +47,7 @@ st.markdown("""
 .holo p {margin:2px 0 0 0; color:#9fdfff}
 </style>
 <div class="holo">
-  <h1>🔮 Cyber Analytics — YouTube Sentiment</h1>
+  <h1>🔮 Cyber Analytics - YouTube Sentiment</h1>
   <p>•Paste a content URL and analyze</p>
 </div>
 """, unsafe_allow_html=True)
@@ -253,7 +253,7 @@ if fetch_btn:
                     df[col] = 0.0
             if "dominant_emotion" not in df.columns:
                 df["dominant_emotion"] = "none"
-            status.info("No emotion model available — using zeroed NRC columns as placeholder.")
+            status.info("No emotion model available - using zeroed NRC columns as placeholder.")
     else:
         # emotions disabled by user -> create placeholder columns so charts don't break
         nrc_cols = ["anger","anticipation","disgust","fear","joy","sadness","surprise","trust"]
@@ -262,7 +262,7 @@ if fetch_btn:
                 df[col] = 0.0
         if "dominant_emotion" not in df.columns:
             df["dominant_emotion"] = "none"
-        status.info("Emotion analysis disabled — placeholder emotion columns added.")
+        status.info("Emotion analysis disabled - placeholder emotion columns added.")
 
     # Optional: compare TextBlob vs VADER if both available
     try:

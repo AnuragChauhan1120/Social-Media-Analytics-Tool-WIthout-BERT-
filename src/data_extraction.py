@@ -13,13 +13,22 @@ from pathlib import Path
 env_path = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(env_path)
 
-YOUTUBE_API_KEY = st.secrets.get("YOUTUBE_API_KEY") or os.getenv("YOUTUBE_API_KEY")
+def get_youtube_api_key():
+    api_key = os.getenv("YOUTUBE_API_KEY")
+    if api_key:
+        return api_key
 
-if not YOUTUBE_API_KEY:
-    raise ValueError(
-        "❌ YouTube API key not found.\n"
-        "Set YOUTUBE_API_KEY in Streamlit Cloud → Secrets."
-    )
+    try:
+        api_key = st.secrets.get("YOUTUBE_API_KEY")
+    except FileNotFoundError:
+        api_key = None
+
+    if not api_key:
+        raise ValueError(
+            "❌ YouTube API key not found.\n"
+            "Set YOUTUBE_API_KEY in Streamlit Cloud → Secrets."
+        )
+    return api_key
 
 
 # ----------------------------------------------------
@@ -37,6 +46,7 @@ def get_comments(video_url, max_results=200):
     video_id = extract_video_id(video_url)
     if not video_id:
         raise ValueError("Invalid YouTube video URL")
+    youtube_api_key = get_youtube_api_key()
 
     comments = []
     next_page_token = None
@@ -46,7 +56,7 @@ def get_comments(video_url, max_results=200):
         params = {
             "part": "snippet",
             "videoId": video_id,
-            "key": YOUTUBE_API_KEY,
+            "key": youtube_api_key,
             "maxResults": 100,
             "pageToken": next_page_token,
             "textFormat": "plainText"

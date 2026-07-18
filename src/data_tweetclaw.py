@@ -20,6 +20,8 @@ def _first(row: dict[str, Any], fields: tuple[str, ...]) -> str:
             if nested:
                 return nested
         elif value is not None:
+            if pd.api.types.is_scalar(value) and pd.isna(value):
+                continue
             text = str(value).strip()
             if text:
                 return text

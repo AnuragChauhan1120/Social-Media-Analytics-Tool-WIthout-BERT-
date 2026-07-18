@@ -21,3 +21,5 @@ comment schema:
 
 Rows without tweet text are skipped so the existing TextBlob, VADER, emotion,
 hashtag, keyword, and chart flows keep working.
+
+Xquik is an independent third-party service. Not affiliated with X Corp. "Twitter" and "X" are trademarks of X Corp.
