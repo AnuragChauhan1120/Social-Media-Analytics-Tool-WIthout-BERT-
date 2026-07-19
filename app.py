@@ -17,6 +17,7 @@ import streamlit.components.v1 as components
 
 # local helpers
 from src.data_extraction import get_comments
+from src.data_tweetclaw import load_tweetclaw_export
 from src.utils_visuals import (
     plot_sentiment_bar, plot_sentiment_pie, plot_likes_vs_sentiment,
     make_wordcloud_figure, format_comment_card, timeseries_sentiment
@@ -24,7 +25,7 @@ from src.utils_visuals import (
 from src.db_utils import create_comments_table, insert_comments
 
 # Page config
-st.set_page_config(page_title="Cyber Analytics — YouTube Sentiment", layout="wide")
+st.set_page_config(page_title="Cyber Analytics - YouTube Sentiment", layout="wide")
 st.markdown("<style>body{background:#0b0f14;color:#cfefff}</style>", unsafe_allow_html=True)
 
 # --- hologram header (Glass Hologram effect) ---
@@ -46,7 +47,7 @@ st.markdown("""
 .holo p {margin:2px 0 0 0; color:#9fdfff}
 </style>
 <div class="holo">
-  <h1>🔮 Cyber Analytics — YouTube Sentiment</h1>
+  <h1>🔮 Cyber Analytics - YouTube Sentiment</h1>
   <p>•Paste a content URL and analyze</p>
 </div>
 """, unsafe_allow_html=True)
@@ -54,17 +55,27 @@ st.markdown("""
 # layout: left sidebar for controls, main area for visuals
 platform = st.sidebar.selectbox(
     "Platform",
-    ["YouTube", "Reddit"],
+    ["YouTube", "Reddit", "TweetClaw Export"],
     index=0
 )
 if platform == "YouTube":
     input_label = "Paste YouTube Video URL"
-else:
+elif platform == "Reddit":
     input_label = "Paste Reddit Post URL"
+else:
+    input_label = ""
 
 with st.sidebar:
     st.header("Controls")
-    input_url = st.text_input(input_label, value="")
+    tweetclaw_file = None
+    if platform == "TweetClaw Export":
+        tweetclaw_file = st.file_uploader(
+            "Upload TweetClaw CSV, JSON, JSONL, or NDJSON",
+            type=["csv", "json", "jsonl", "ndjson"]
+        )
+        input_url = ""
+    else:
+        input_url = st.text_input(input_label, value="")
     max_comments = st.slider("Max comments to fetch", min_value=50, max_value=1000, value=300, step=50)
     fetch_btn = st.button("Fetch & Analyze")
     st.markdown("---")
@@ -134,9 +145,26 @@ except Exception:
 if fetch_btn:
 
     # -----------------------
+    # TWEETCLAW EXPORT BRANCH
+    # -----------------------
+    if platform == "TweetClaw Export":
+        if tweetclaw_file is None:
+            status.error("Upload a TweetClaw export file first.")
+            st.stop()
+        try:
+            status.info("Loading TweetClaw export...")
+            raw = load_tweetclaw_export(tweetclaw_file, tweetclaw_file.name)
+            df = prepare_df_for_display(raw)
+            st.session_state.last_df = df
+            status.success(f"Loaded {len(df)} TweetClaw rows.")
+        except Exception as e:
+            status.error(f"TweetClaw import failed: {e}")
+            st.stop()
+
+    # -----------------------
     # REDDIT BRANCH
     # -----------------------
-    if platform == "Reddit":
+    elif platform == "Reddit":
         try:
             from src.data_reddit import fetch_reddit_comments
         except Exception as e:
@@ -225,7 +253,7 @@ if fetch_btn:
                     df[col] = 0.0
             if "dominant_emotion" not in df.columns:
                 df["dominant_emotion"] = "none"
-            status.info("No emotion model available — using zeroed NRC columns as placeholder.")
+            status.info("No emotion model available - using zeroed NRC columns as placeholder.")
     else:
         # emotions disabled by user -> create placeholder columns so charts don't break
         nrc_cols = ["anger","anticipation","disgust","fear","joy","sadness","surprise","trust"]
@@ -234,7 +262,7 @@ if fetch_btn:
                 df[col] = 0.0
         if "dominant_emotion" not in df.columns:
             df["dominant_emotion"] = "none"
-        status.info("Emotion analysis disabled — placeholder emotion columns added.")
+        status.info("Emotion analysis disabled - placeholder emotion columns added.")
 
     # Optional: compare TextBlob vs VADER if both available
     try:

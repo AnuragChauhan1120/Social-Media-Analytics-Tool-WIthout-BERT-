@@ -1,12 +1,7 @@
 # src/data_cleaning_vader.py
 
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-import pandas as pd
 from src.db_utils import get_connection
-from transformer_models import TransformerSentimentModel, TransformerEmotionModel
-
-sentiment_model = TransformerSentimentModel()
-emotion_model = TransformerEmotionModel()
 
 analyzer = SentimentIntensityAnalyzer()
 
@@ -86,7 +81,6 @@ def update_vader_in_db(only_null=True, batch_size=500):
             label = vader_label_from_compound(s["compound"])
             updates.append((s["compound"], s["pos"], s["neu"], s["neg"], label, comment_id))
 
-        args_str = ",".join(["(%s,%s,%s,%s,%s,%s)"] * len(updates))
         # We'll just run individual updates to keep it simple and safe
         for comp, p, neu, neg, lab, cid in updates:
             cur.execute("""
@@ -101,49 +95,4 @@ def update_vader_in_db(only_null=True, batch_size=500):
     cur.close()
     conn.close()
     print("VADER update complete.")
-
-# ---------------------------------------------------------
-# TRANSFORMER SENTIMENT + EMOTION for batches in the DB
-# ---------------------------------------------------------
-def update_transformers_in_db(only_null=True, batch_size=200):
-    """
-    Applies RoBERTa sentiment + DistilRoBERTa emotion to DB rows.
-    Writes results to DB columns:
-       transformer_sentiment, t_positive, t_negative, t_neutral,
-       joy, anger, fear, sadness, disgust, surprise, trust, anticipation
-    """
-    conn = get_connection()
-    cur = conn.cursor()
-
-    if only_null:
-        cur.execute("""
-            SELECT comment_id, text 
-            FROM youtube_comments 
-            WHERE transformer_sentiment IS NULL
-        """)
-    else:
-        cur.execute("SELECT comment_id, text FROM youtube_comments")
-
-    rows = cur.fetchall()
-    if not rows:
-        print("No rows to update for Transformer models.")
-        cur.close(); conn.close(); return
-
-    print(f"Found {len(rows)} rows for transformer analysis.")
-
-    i = 0
-    while i < len(rows):
-        batch = rows[i:i+batch_size]
-        texts = [(t or "") for _, t in batch]
-
-        # ---- Transformer sentiment ----
-        sent_results = sentiment_model.predict(texts)
-        # ---- Transformer emotions ----
-        emo_results = emotion_model.predict(texts)
-
-        # write results
-        for (comment_id, text), s_res, e_res in zip(batch, sent_results, emo_results):
-            cur.execute("""
-                UPDATE youtube_comments
-                SET transformer_sentimen_
 
